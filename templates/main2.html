@@ -160,11 +160,11 @@
             <!-- <label for="time_input">Select Time (optional):</label>
             <input type="time" name="time_input" id="time_input" step="1" value="{{time_input|default('')}}">
  -->
-            <label for="start_time">Start Time:</label>
-            <input type="time" name="start_time" id="start_time" step="1" value="{{start_time|default('')}}">
+            <label for="start_time">Start Time (optional, default 00:00:00):</label>
+            <input type="time" name="start_time" id="start_time" step="1" placeholder="00:00:00" value="{{start_time|default('')}}"><br><br>
 
-            <label for="end_time">End Time:</label>
-            <input type="time" name="end_time" id="end_time" step="1" value="{{end_time|default('')}}">
+            <label for="end_time">End Time (optional, default 23:55:00):</label>
+            <input type="time" name="end_time" id="end_time" step="1" placeholder="23:55:00" value="{{end_time|default('')}}"><br><br>
 
             <input type="submit" value="Fetch Weather Data">
         </form>

@@ -149,8 +149,8 @@ def index():
                            current_date=current_date)
 
 
+# Parallel API fetching
 def fetch_all_for_timestamp(station_id, timestamp):
-    """Fetch all API readings for a single timestamp."""
     date_param = f"?date={timestamp}"
     results_dict = {}
     actual_time = timestamp
@@ -182,8 +182,8 @@ def results():
 
     station_id = data_source.get("station", DEFAULT_STATION)
     date_input = data_source.get("date_input", "")
-    start_time_input = data_source.get("start_time", "00:00")
-    end_time_input = data_source.get("end_time", "23:55")
+    start_time_input = data_source.get("start_time", "") or "00:00:00"
+    end_time_input = data_source.get("end_time", "") or "23:55:00"
 
     # Ensure seconds exist
     if len(start_time_input.split(":")) == 2:
@@ -200,35 +200,11 @@ def results():
     current_dt = start_dt
     while current_dt <= end_dt:
         timestamps.append(current_dt.strftime("%Y-%m-%dT%H:%M:%S"))
-        current_dt += timedelta(minutes=5)
+        current_dt += timedelta(minutes=1)
 
-    # Parallel API fetching
-    def fetch_all_for_timestamp(station_id, timestamp):
-        date_param = f"?date={timestamp}"
-        results_dict = {}
-        actual_time = timestamp
-
-        with ThreadPoolExecutor(max_workers=len(API_ENDPOINTS)) as executor:
-            future_to_param = {
-                executor.submit(fetch_nea_data_with_retry, endpoint, date_param, station_id): param_name
-                for param_name, endpoint in API_ENDPOINTS.items()
-            }
-
-            for future in as_completed(future_to_param):
-                param_name = future_to_param[future]
-                try:
-                    value, actual_param = future.result()
-                    results_dict[param_name] = value
-                    if actual_param:
-                        actual_time = actual_param.replace("?date=", "").replace("T", " ")
-                except Exception as e:
-                    print(f"Error fetching {param_name} for {timestamp}: {e}")
-                    results_dict[param_name] = None
-
-        return {"timestamp": actual_time, "data": results_dict}
 
     all_results = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         future_to_ts = {executor.submit(fetch_all_for_timestamp, station_id, ts): ts for ts in timestamps}
         for future in as_completed(future_to_ts):
             all_results.append(future.result())
