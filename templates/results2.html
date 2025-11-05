@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>NEA Weather Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #222;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+        }
+
+        th {
+            background-color: #1e40af;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) { background-color: #f1f5f9; }
+
+        tr[style], tr[data-error="true"] {
+            background-color: #fee2e2 !important;
+        }
+
+        td:nth-child(1) {
+            font-weight: 500;
+            color: #1e3a8a;
+        }
+
+        a {
+            display: inline-block;
+            margin: 2rem auto;
+            text-align: center;
+            text-decoration: none;
+            color: #2563eb;
+            background: #e0ecff;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+        }
+        .export-btn {
+        background-color: #2563eb; /* nice blue */
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        margin: 0 0.3rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .export-btn:hover {
+            background-color: #1e40af; /* darker blue on hover */
+            transform: translateY(-1px);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <h2>🌦️ Results for Station {{selected_station}}<br>
+        <small style="color:#475569;">at {{actual_time}}</small>
+    </h2> -->
+    <h2>🌦️ Weather Results for {{station_name}} ({{selected_station}})</h2>
+    <div style="text-align:center; margin: 1rem 0;">
+        <form method="POST" action="/export" style="display:inline;">
+            <input type="hidden" name="station" value="{{selected_station}}">
+            <input type="hidden" name="station_name" value="{{station_name}}">
+            {% for entry in all_results %}
+                <input type="hidden" name="timestamps[]" value="{{entry.timestamp}}">
+                {% for param, value in entry.data.items() %}
+                    <input type="hidden" name="{{entry.timestamp}}_{{param}}" value="{{value}}">
+                {% endfor %}
+            {% endfor %}
+            <button type="submit" name="format" value="csv" class="export-btn">Export CSV</button>
+            <button type="submit" name="format" value="excel" class="export-btn">Export Excel</button>
+            <button type="submit" name="format" value="pdf" class="export-btn">Export PDF</button>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                {% for param in all_results[0].data.keys() %}
+                <th>{{param}}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in all_results %}
+            <tr>
+                <td>{{entry.timestamp}}</td>
+                {% for value in entry.data.values() %}
+                    {% if value is not none %}
+                        <td>{{value}}</td>
+                    {% else %}
+                        <td style="background-color:#fee2e2;">No reading</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="text-align:center;">
+        <a href="/">← Go Back</a>
+    </div>
+
+    <div class="footer">
+        Built using Flask and NEA API
+    </div>
+</body>
+</html>
