@@ -1,0 +1,39 @@
+<!doctype html>
+<title>NEA Weather Fetcher</title>
+<h2>NEA Real-Time Weather Data Fetcher</h2>
+
+<h3>Stations</h3>
+<table border="1" cellpadding="5">
+<tr><th>ID</th><th>Name</th><th>Latitude</th><th>Longitude</th></tr>
+{% for s in stations %}
+<tr {% if s.id == selected_station %} style="background-color: #ddf;" {% endif %}>
+    <td>{{s.id}}</td><td>{{s.name}}</td><td>{{s.lat}}</td><td>{{s.lon}}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Fetch Data</h3>
+<form method="POST">
+    <label for="station">Select Station:</label>
+    <select name="station">
+        {% for s in stations %}
+        <option value="{{s.id}}" {% if s.id==selected_station %}selected{% endif %}>{{s.id}} - {{s.name}}</option>
+        {% endfor %}
+    </select><br><br>
+
+    <label for="date_input">Select Date:</label>
+    <input type="date" name="date_input" value="{{date_input|default('')}}" max="{{current_date}}" required>
+
+    <label for="time_input">Time (HH:MM:SS, optional, leave empty for now):</label>
+    <input type="time" name="time_input" step="1" value="{{time_input|default('')}}"><br><br>
+
+    <input type="submit" value="Submit">
+</form>
+
+
+<script>
+    document.getElementById('fetchForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent default immediate submission
+        this.submit(); // Submit the form programmatically
+    });
+</script>

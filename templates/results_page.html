@@ -1,0 +1,16 @@
+<!doctype html>
+<title>NEA Weather Results</title>
+<h2>Results for Station {{selected_station}} at {{actual_time}}</h2>
+
+<table border="1" cellpadding="5">
+<tr><th>Parameter</th><th>Value</th></tr>
+{% for param, value in results.items() %}
+<tr {% if value is none %} style="background-color:#fdd;" {% endif %}>
+    <td>{{param}}</td>
+    <td>{% if value is not none %}{{value}}{% else %}No reading{% endif %}</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+<a href="/">← Go Back</a>
