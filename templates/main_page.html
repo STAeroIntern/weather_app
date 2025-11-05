@@ -1,39 +1,203 @@
 <!doctype html>
-<title>NEA Weather Fetcher</title>
-<h2>NEA Real-Time Weather Data Fetcher</h2>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>NEA Weather Fetcher</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<h3>Stations</h3>
-<table border="1" cellpadding="5">
-<tr><th>ID</th><th>Name</th><th>Latitude</th><th>Longitude</th></tr>
-{% for s in stations %}
-<tr {% if s.id == selected_station %} style="background-color: #ddf;" {% endif %}>
-    <td>{{s.id}}</td><td>{{s.name}}</td><td>{{s.lat}}</td><td>{{s.lon}}</td>
-</tr>
-{% endfor %}
-</table>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #222;
+            margin: 0;
+            padding: 2rem;
+        }
 
-<h3>Fetch Data</h3>
-<form method="POST">
-    <label for="station">Select Station:</label>
-    <select name="station">
-        {% for s in stations %}
-        <option value="{{s.id}}" {% if s.id==selected_station %}selected{% endif %}>{{s.id}} - {{s.name}}</option>
-        {% endfor %}
-    </select><br><br>
+        h2 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+        }
 
-    <label for="date_input">Select Date:</label>
-    <input type="date" name="date_input" value="{{date_input|default('')}}" max="{{current_date}}" required>
+        h3 {
+            color: #2563eb;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.25rem;
+            margin-bottom: 0.75rem;
+        }
 
-    <label for="time_input">Time (HH:MM:SS, optional, leave empty for now):</label>
-    <input type="time" name="time_input" step="1" value="{{time_input|default('')}}"><br><br>
+        /* Layout container */
+        .content-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            flex-wrap: wrap; /* Stacks on small screens */
+        }
 
-    <input type="submit" value="Submit">
-</form>
+        /* Station table section */
+        .station-table {
+            flex: 1 1 400px;
+            overflow-x: auto;
+        }
 
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.9rem;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
-<script>
-    document.getElementById('fetchForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent default immediate submission
-        this.submit(); // Submit the form programmatically
-    });
-</script>
+        th, td {
+            text-align: left;
+            padding: 0.4rem 0.7rem;
+        }
+
+        th {
+            background-color: #1e40af;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) { background-color: #f1f5f9; }
+        tr.selected { background-color: #dbeafe !important; font-weight: 600; }
+
+        /* Form styling */
+        form {
+            flex: 0 1 350px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+
+        label {
+            font-weight: 500;
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.4rem;
+            margin-top: 0.25rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        input[type="submit"] {
+            background-color: #2563eb;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+            margin-top: 1rem;
+            padding: 0.5rem;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #1d4ed8;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            form, .station-table {
+                width: 100%;
+                max-width: 480px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🌦️ NEA Real-Time Weather Data Fetcher</h2>
+
+    <div class="content-container">
+        <div class="station-table">
+            <h3>Available Stations</h3>
+            <table id="stationsTable">
+                <tr><th>ID</th><th>Name</th><th>Latitude</th><th>Longitude</th></tr>
+                {% for s in stations %}
+                <tr data-station="{{s.id}}" class="{% if s.id == selected_station %}selected{% endif %}">
+                    <td>{{s.id}}</td>
+                    <td>{{s.name}}</td>
+                    <td>{{s.lat}}</td>
+                    <td>{{s.lon}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <form method="POST" id="fetchForm">
+            <h3>Fetch Data</h3>
+            <label for="station">Select Station:</label>
+            <select name="station" id="station">
+                {% for s in stations %}
+                <option value="{{s.id}}" {% if s.id==selected_station %}selected{% endif %}>{{s.id}} - {{s.name}}</option>
+                {% endfor %}
+            </select>
+
+            <label for="date_input">Select Date:</label>
+            <input type="date" name="date_input" id="date_input" value="{{date_input|default('')}}" max="{{current_date}}" required>
+
+            <label for="time_input">Select Time (optional):</label>
+            <input type="time" name="time_input" id="time_input" step="1" value="{{time_input|default('')}}">
+
+            <input type="submit" value="Fetch Weather Data">
+        </form>
+    </div>
+
+    <div class="footer">
+        Built using Flask and NEA API
+    </div>
+
+    <script>
+        // Highlight corresponding table row when dropdown changes
+        const select = document.getElementById('station');
+        const rows = document.querySelectorAll('#stationsTable tr[data-station]');
+
+        select.addEventListener('change', () => {
+            const selected = select.value;
+            rows.forEach(row => {
+                if (row.dataset.station === selected) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            });
+        });
+
+        // Make clicking on a table row update the dropdown too
+        rows.forEach(row => {
+            row.addEventListener('click', () => {
+                select.value = row.dataset.station;
+                select.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Add simple submit feedback
+        document.getElementById('fetchForm').addEventListener('submit', function() {
+            const button = this.querySelector('input[type="submit"]');
+            button.value = 'Fetching...';
+            button.disabled = true;
+        });
+    </script>
+</body>
+</html>

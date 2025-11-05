@@ -1,16 +1,107 @@
 <!doctype html>
-<title>NEA Weather Results</title>
-<h2>Results for Station {{selected_station}} at {{actual_time}}</h2>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>NEA Weather Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<table border="1" cellpadding="5">
-<tr><th>Parameter</th><th>Value</th></tr>
-{% for param, value in results.items() %}
-<tr {% if value is none %} style="background-color:#fdd;" {% endif %}>
-    <td>{{param}}</td>
-    <td>{% if value is not none %}{{value}}{% else %}No reading{% endif %}</td>
-</tr>
-{% endfor %}
-</table>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #222;
+            margin: 0;
+            padding: 2rem;
+        }
 
-<br>
-<a href="/">← Go Back</a>
+        h2 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 500px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+        }
+
+        th {
+            background-color: #1e40af;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) { background-color: #f1f5f9; }
+
+        tr[style], tr[data-error="true"] {
+            background-color: #fee2e2 !important;
+        }
+
+        td:nth-child(1) {
+            font-weight: 500;
+            color: #1e3a8a;
+        }
+
+        a {
+            display: inline-block;
+            margin: 2rem auto;
+            text-align: center;
+            text-decoration: none;
+            color: #2563eb;
+            background: #e0ecff;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🌦️ Results for Station {{selected_station}}<br>
+        <small style="color:#475569;">at {{actual_time}}</small>
+    </h2>
+
+    <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        {% for param, value in results.items() %}
+        <tr {% if value is none %} data-error="true" {% endif %}>
+            <td>{{param}}</td>
+            <td>{% if value is not none %}{{value}}{% else %}No reading{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div style="text-align:center;">
+        <a href="/">← Go Back</a>
+    </div>
+
+    <div class="footer">
+        Built using Flask and NEA API
+    </div>
+</body>
+</html>
