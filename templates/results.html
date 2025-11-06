@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Data Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 40px;
+        }
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn-export {
+            margin-right: 10px;
+        }
+        .back-btn {
+            margin-top: 20px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>NEA Weather Data Results</h1>
+
+    <div class="card">
+        <h4>Station: {{ station_id }}</h4>
+        <p><b>Date:</b> {{ user_date }} &nbsp; | &nbsp; <b>Time Range:</b> {{ start_time }} – {{ end_time }}</p>
+
+        <div class="d-flex justify-content-end mb-3">
+            <form method="GET" action="/export/csv" class="d-inline">
+                <input type="hidden" name="station" value="{{ station_id }}">
+                <input type="hidden" name="date" value="{{ user_date }}">
+                <input type="hidden" name="start" value="{{ start_time }}">
+                <input type="hidden" name="end" value="{{ end_time }}">
+                <button class="btn btn-outline-primary btn-export">Export CSV</button>
+            </form>
+
+            <form method="GET" action="/export/excel" class="d-inline">
+                <input type="hidden" name="station" value="{{ station_id }}">
+                <input type="hidden" name="date" value="{{ user_date }}">
+                <input type="hidden" name="start" value="{{ start_time }}">
+                <input type="hidden" name="end" value="{{ end_time }}">
+                <button class="btn btn-outline-success btn-export">Export Excel</button>
+            </form>
+
+            <form method="GET" action="/export/pdf" class="d-inline">
+                <input type="hidden" name="station" value="{{ station_id }}">
+                <input type="hidden" name="date" value="{{ user_date }}">
+                <input type="hidden" name="start" value="{{ start_time }}">
+                <input type="hidden" name="end" value="{{ end_time }}">
+                <button class="btn btn-outline-danger btn-export">Export PDF</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            {{ table_html | safe }}
+        </div>
+
+        <div class="text-center back-btn">
+            <a href="/" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+        <div class="d-flex justify-content-end mb-3">
+        <a href="/export/csv" class="btn btn-outline-primary me-2">Export CSV</a>
+        <a href="/export/excel" class="btn btn-outline-success me-2">Export Excel</a>
+        <a href="/export/pdf" class="btn btn-outline-danger">Export PDF</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
