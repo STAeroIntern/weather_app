@@ -198,12 +198,50 @@
             });
         });
 
-        // Add simple submit feedback
-        document.getElementById('fetchForm').addEventListener('submit', function() {
-            const button = this.querySelector('input[type="submit"]');
-            button.value = 'Fetching...';
-            button.disabled = true;
+        // // Add simple submit feedback
+        // document.getElementById('fetchForm').addEventListener('submit', function() {
+        //     const button = this.querySelector('input[type="submit"]');
+        //     button.value = 'Fetching...';
+        //     button.disabled = true;
+        // });
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('fetchForm');
+        const startInput = document.getElementById('start_time');
+        const endInput = document.getElementById('end_time');
+
+        // Ensure end time is never earlier than start time
+        startInput.addEventListener('input', () => {
+            if (startInput.value) {
+                endInput.min = startInput.value;
+                // If current end time is before new start time, adjust it
+                if (endInput.value && endInput.value < startInput.value) {
+                    endInput.value = startInput.value;
+                }
+            } else {
+                endInput.min = "00:00:00"; // reset min if start empty
+            }
         });
+
+        // Optional: prevent manual invalid submission
+        form.addEventListener('submit', function(event) {
+            const startVal = startInput.value || "00:00:00";
+            const endVal = endInput.value || "23:55:00";
+
+            if (endVal < startVal) {
+                alert("End time cannot be earlier than start time!");
+                event.preventDefault(); // stop submission
+                return false;
+            }
+
+            // Disable submit button while fetching
+            const submitBtn = form.querySelector('input[type="submit"]');
+            submitBtn.value = "Fetching...";
+            submitBtn.disabled = true;
+        });
+    });
+
+        
     </script>
 </body>
 </html>
