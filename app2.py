@@ -102,27 +102,6 @@ def process_user_date(date_input, time_input):
         time_parts.append("00")
     return f"?date={date_input}T{':'.join(time_parts[:3])}"
 
-def generate_time_intervals(date_input, start_time, end_time, interval_minutes=5):
-    """
-    Returns a list of datetime strings in ISO format every `interval_minutes`
-    between start_time and end_time on the given date.
-    """
-    # If start_time/end_time empty, assume full day
-    if not start_time:
-        start_time = "00:00:00"
-    if not end_time:
-        end_time = "23:59:59"
-
-    # Build full datetime strings
-    start_dt = datetime.strptime(f"{date_input}T{start_time}", "%Y-%m-%dT%H:%M:%S")
-    end_dt = datetime.strptime(f"{date_input}T{end_time}", "%Y-%m-%dT%H:%M:%S")
-
-    timestamps = []
-    current = start_dt
-    while current <= end_dt:
-        timestamps.append(current.strftime("%Y-%m-%dT%H:%M:%S"))
-        current += timedelta(minutes=interval_minutes)
-    return timestamps
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -213,11 +192,13 @@ def results():
     all_results.sort(key=lambda x: x["timestamp"])
 
     station_name = next((s["name"] for s in STATIONS if s["id"] == station_id), "Unknown Station")
+    param_names = list(API_ENDPOINTS.keys())  # pass this to template
 
     return render_template(RESULTS_PAGE_HTML,
                            station_name=station_name,
                            selected_station=station_id,
-                           all_results=all_results)
+                           all_results=all_results,
+                           param_names=param_names)
 
 
 @app.route("/export", methods=["POST"])
@@ -225,27 +206,24 @@ def export():
     station = request.form.get("station")
     station_name = request.form.get("station_name")
     export_format = request.form.get("format")
+    
+    # Pass param_names from template to ensure same order
+    param_names = request.form.getlist("param_names[]")  # send this hidden input in template
 
     # Reconstruct the table from hidden inputs
     timestamps = request.form.getlist("timestamps[]")
-    data_rows = []
 
-    # Collect all columns from first timestamp
-    all_params = []
-    if timestamps:
-        sample_ts = timestamps[0]
-        for key in request.form.keys():
-            if key.startswith(sample_ts + "_"):
-                all_params.append(key[len(sample_ts)+1:])
+    data_rows = []
 
     for ts in timestamps:
         row = {"Time": ts}
-        for param in all_params:
+        for param in param_names:
             val = request.form.get(f"{ts}_{param}")
             row[param] = val
         data_rows.append(row)
 
-    df = pd.DataFrame(data_rows)
+    #df = pd.DataFrame(data_rows)
+    df = pd.DataFrame(data_rows, columns=["Time"] + param_names)
 
     if export_format == "csv":
         output = io.StringIO()
@@ -277,7 +255,8 @@ def export():
         elements.append(Spacer(1, 12))
 
         # Prepare table data
-        table_data = [list(df.columns)] + df.values.tolist()
+        #table_data = [list(df.columns)] + df.values.tolist()
+        table_data = [["Time"] + param_names] + df[["Time"] + param_names].values.tolist()
 
         table = Table(table_data)
         table_style = TableStyle([
