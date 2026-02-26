@@ -10,6 +10,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import time
+import load_dotenv
+import os
+
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+headers = {"X-Api-Key": API_KEY}
 
 app = Flask(__name__)
 
@@ -63,7 +69,7 @@ def fetch_nea_data_all_station(endpoint, date_param, station_id, start_time=None
         for attempt in range(max_retries):
             try:
                 conn = http.client.HTTPSConnection("api-open.data.gov.sg", timeout=5)
-                conn.request("GET", url)
+                conn.request("GET", url,headers = headers)
                 res = conn.getresponse()
                 if res.status != 200:
                     raise Exception(f"HTTP {res.status}")
